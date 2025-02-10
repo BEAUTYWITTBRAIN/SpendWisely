@@ -10,10 +10,23 @@ function App() {
   const [editingTransaction, setEditingTransaction] = useState(null);
 
   const addTransaction = (transaction) => {
+    if (transaction.type === 'income') {
+      // Update income if the transaction is of type 'income'
+      setIncome((prevIncome) => prevIncome + parseFloat(transaction.amount));
+    }
     setTransactions([...transactions, transaction]);
   };
 
   const editTransaction = (updatedTransaction) => {
+    const oldTransaction = transactions.find((t) => t.id === updatedTransaction.id);
+
+    // Adjust income if the transaction type is changed
+    if (oldTransaction.type === 'income' && updatedTransaction.type !== 'income') {
+      setIncome((prevIncome) => prevIncome - parseFloat(oldTransaction.amount));
+    } else if (oldTransaction.type !== 'income' && updatedTransaction.type === 'income') {
+      setIncome((prevIncome) => prevIncome + parseFloat(updatedTransaction.amount));
+    }
+
     setTransactions(
       transactions.map((t) =>
         t.id === updatedTransaction.id ? updatedTransaction : t
@@ -23,6 +36,13 @@ function App() {
   };
 
   const deleteTransaction = (id) => {
+    const deletedTransaction = transactions.find((t) => t.id === id);
+
+    // Adjust income if the deleted transaction was of type 'income'
+    if (deletedTransaction.type === 'income') {
+      setIncome((prevIncome) => prevIncome - parseFloat(deletedTransaction.amount));
+    }
+
     setTransactions(transactions.filter((t) => t.id !== id));
   };
 
@@ -78,9 +98,10 @@ function App() {
             <p
               style={{
                 color: '#6a0dad',
-                fontSize: '18px',
+                fontSize: '16px',
                 lineHeight: '1.5',
                 marginBottom: '20px',
+                fontStyle: 'italic',
                 opacity: '0.8',
               }}
             >
@@ -97,6 +118,7 @@ function App() {
           {/* Add Transaction Form */}
           <div
             style={{
+              // backgroundColor: '#f8f9fa',
               borderRadius: '10px',
               padding: '20px',
               boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
@@ -109,6 +131,7 @@ function App() {
                 marginBottom: '10px',
               }}
             >
+              Add New Transaction
             </h2>
             <ExpenseForm
               addTransaction={editingTransaction ? editTransaction : addTransaction}
